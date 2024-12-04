@@ -19,14 +19,19 @@ from PyQt5.QtWidgets import (
     QFrame,
     QLineEdit,
     QVBoxLayout,
+    QHBoxLayout,
     QMainWindow,
     QGridLayout,
-    QSpinBox
+    QSpinBox,
+    QStyle,
+    QPushButton
 )
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.Qt import Qt
 
-from eqList import eqList
+from eqList import EqList
+from iconButton import IconButton
 
 colors = vtkNamedColors()
 
@@ -42,6 +47,10 @@ coneActor = vtkActor()
 coneActor.SetMapper(coneMapper)
 coneActor.GetProperty().SetColor(colors.GetColor3d('MistyRose'))
 
+dockIcons = [
+    QStyle.SP_MessageBoxInformation,
+    QStyle.SP_MessageBoxQuestion
+]
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -53,7 +62,9 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle(self.title)
 
-        self.eqList = eqList()
+        self.infoButton, self.helpButton = [IconButton  (icon) for icon in dockIcons]
+
+        self.eqList = EqList()
         self.eqList.itemDoubleClicked.connect(self.editListItem)
 
         self.digitBox = QSpinBox()
@@ -76,9 +87,11 @@ class MainWindow(QMainWindow):
         self.frame.setLayout(self.vl)
 
         self.layout = QGridLayout()
-        self.layout.addWidget(self.eqList, 0, 0)
-        self.layout.addWidget(self.frame, 0, 1, 2, 1)
-        self.layout.addWidget(self.digitBox, 1, 0)
+        self.layout.addWidget(self.eqList, 0, 0, 2, 1)
+        self.layout.addWidget(self.frame, 1, 1, 2, 2)
+        self.layout.addWidget(self.digitBox, 2, 0)
+        self.layout.addWidget(self.infoButton, 0, 1)
+        self.layout.addWidget(self.helpButton, 0, 2)
 
         self.widget = QWidget()
         self.widget.setLayout(self.layout)
@@ -102,11 +115,15 @@ class MainWindow(QMainWindow):
                 if self.eqList.count() > 0:
                  self.editListItem(self.eqList.currentItem())
 
+    @pyqtSlot()
+    def openHelp():
+        print('HELP!!!')
+
     def editListItem(self, selectedItem):
         dlg = NewGraphDialog()
-        dlg.textbox.setText(selectedItem.text())
+        dlg.textbox.setText(selectedItem.text().strip())
         if dlg.exec():
-            selectedItem.setText(dlg.textbox.text())
+            selectedItem.setText(dlg.textbox.text().strip())
 
 class NewGraphDialog(QDialog):
     def __init__(self):
